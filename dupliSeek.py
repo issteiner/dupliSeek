@@ -1,10 +1,13 @@
 #! /usr/bin/env python3
 
 # Originally taken from:
-# http://www.pythoncentral.io/finding-duplicate-files-with-python/
-# Original Auther: Andres Torres
 
-# Adapted to only compute the md5sum of files with the same size
+# https://github.com/IanLee1521/utilities/blob/master/utilities/find_duplicates.py
+# Original Auther: Ian Lee
+
+# Changes are
+# - globalized hash directories to avoid directory joining
+# - some refactoring, renaming, etc
 
 import argparse
 import os
@@ -20,11 +23,9 @@ def find_duplicates(folders):
             print('%s is not a valid path, please verify' % actual_folder)
     find_same_hash()
 
-
 def find_same_size(folder):
-    # Dups in format {hash:[names]}
+    print('Gathering files with same size... ', end="")
     for dirname, subdirs, filelist in os.walk(folder):
-#        print('Scanning %s...' % dirname)
         for filename in filelist:
             # Get the fullpath_filename to the file
             fullpath_filename = os.path.join(dirname, filename)
@@ -34,18 +35,23 @@ def find_same_size(folder):
                 samesize_files[file_size].append(fullpath_filename)
             else:
                 samesize_files[file_size] = [fullpath_filename]
+    print('Done.')
 
 def find_same_hash():
-    print('Comparing files with the same size...')
+    print('Comparing same size files with md5... ', end="")
     for samesize_file_list in samesize_files.values():
         if len(samesize_file_list) > 1:
+            samesizehash_files = {}
             for filename in samesize_file_list:
-#                print('    {}'.format(filename))
                 file_hash = calculate_hash(filename)
-                if file_hash in samehash_files:
-                     samehash_files[file_hash].append(filename)
+                if file_hash in samesizehash_files:
+                     samesizehash_files[file_hash].append(filename)
                 else:
-                    samehash_files[file_hash] = [filename]
+                    samesizehash_files[file_hash] = [filename]
+            for hash in samesizehash_files.keys():
+                if len(samesizehash_files[hash]) > 1:
+                    samehash_files[hash] = samesizehash_files[hash]
+    print('Done.')
 
 def calculate_hash(file, blocksize=65536):
     actual_file = open(file, 'rb')
@@ -59,18 +65,14 @@ def calculate_hash(file, blocksize=65536):
 
 
 def print_duplicates():
-    found_duplicate = False
-    for samehash_file_list in samehash_files.values():
-        if len(samehash_file_list) > 1:
-            found_duplicate = True
-            print('___________________')
+    if samehash_files != {}:
+        print('Duplicate files found')
+        for samehash_file_list in samehash_files.values():
+            print('--------------------------------------------------------------')
             for filename in samehash_file_list:
-                print('\t\t%s' % filename)
-            print('___________________')
-    
-    if not found_duplicate:
+                print(filename)
+    else:
         print('No duplicate files found.')
-
 
 def main():
     global samesize_files
@@ -86,9 +88,7 @@ def main():
     args = parser.parse_args()
  
     find_duplicates(args.folders)
-
     print_duplicates()
 
-
 if __name__ == '__main__':
-    sys.exit(main())
+    main()

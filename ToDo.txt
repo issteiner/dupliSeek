@@ -1,0 +1,4 @@
+
+- Add directory print
+- Add byte by byte comparison on the md5 same files
+- 

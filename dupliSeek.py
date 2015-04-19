@@ -20,7 +20,7 @@ def find_duplicates(folders):
             # Find the same size files and append them to samesize_files dictionary
             find_same_size(actual_folder)
         else:
-            print('%s is not a valid path, please verify' % actual_folder)
+            print('\'{}\' is not a valid path. Please verify'.format(actual_folder))
     find_same_hash()
 
 def find_same_size(folder):
@@ -70,7 +70,10 @@ def print_duplicates():
         for samehash_file_list in samehash_files.values():
             print('--------------------------------------------------------------')
             for filename in samehash_file_list:
-                print(filename)
+                try:
+                    print(filename)
+                except UnicodeEncodeError:
+                    print('There is a problem with filename(s) in folder \'{}\'. Please check and fix.'.format(os.path.dirname(filename)))
     else:
         print('No duplicate files found.')
 

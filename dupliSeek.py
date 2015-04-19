@@ -54,15 +54,14 @@ def find_same_hash():
     print('Done.')
 
 def calculate_hash(file, blocksize=65536):
-    actual_file = open(file, 'rb')
-    hasher = hashlib.md5()
-    buf = actual_file.read(blocksize)
-    while len(buf) > 0:
-        hasher.update(buf)
-        buf = actual_file.read(blocksize)
-    actual_file.close()
-    return hasher.hexdigest()
-
+    if os.path.isfile(file):
+        with open(file, 'rb') as actual_file:
+            hasher = hashlib.md5()
+            buf = actual_file.read(blocksize)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = actual_file.read(blocksize)
+            return hasher.hexdigest()
 
 def print_duplicates():
     if samehash_files != {}:

@@ -17,27 +17,30 @@ import hashlib
 def find_duplicates(folders):
     for actual_folder in folders:
         if os.path.exists(actual_folder):
-            # Find the same size files and append them to samesize_files dictionary
             find_same_size(actual_folder)
         else:
             print('\'{}\' is not a valid path. Please verify'.format(actual_folder))
     find_same_hash()
 
 def find_same_size(folder):
+    global samesize_files
+    samesize_files = {}
     print('Gathering files with same size... ', end="")
     for dirname, subdirs, filelist in os.walk(folder):
         for filename in filelist:
-            # Get the fullpath_filename to the file
             fullpath_filename = os.path.join(dirname, filename)
             file_size = os.path.getsize(fullpath_filename)
-            # Add or append the file path
             if file_size in samesize_files:
                 samesize_files[file_size].append(fullpath_filename)
             else:
                 samesize_files[file_size] = [fullpath_filename]
+            if 0 in samesize_files.keys():
+                del(samesize_files[0])
     print('Done.')
 
 def find_same_hash():
+    global samehash_files
+    samehash_files = {}
     print('Comparing same size files with md5... ', end="")
     for samesize_file_list in samesize_files.values():
         if len(samesize_file_list) > 1:
@@ -77,11 +80,6 @@ def print_duplicates():
         print('No duplicate files found.')
 
 def main():
-    global samesize_files
-    global samehash_files
-    samesize_files = {}
-    samehash_files = {}
-
     parser = argparse.ArgumentParser(description='Find duplicate files')
     parser.add_argument(
         'folders', metavar='dir', type=str, nargs='+',

@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#!/usr/bin/env python3
 
 # Originally taken from:
 
@@ -11,8 +11,8 @@
 
 import argparse
 import os
-import sys
 import hashlib
+
 
 def find_duplicates(folders):
     for actual_folder in folders:
@@ -21,6 +21,7 @@ def find_duplicates(folders):
         else:
             print('\'{}\' is not a valid path. Please verify'.format(actual_folder))
     find_same_hash()
+
 
 def find_same_size(folder):
     global samesize_files
@@ -35,8 +36,9 @@ def find_same_size(folder):
             else:
                 samesize_files[file_size] = [fullpath_filename]
             if 0 in samesize_files.keys():
-                del(samesize_files[0])
+                del (samesize_files[0])
     print('Done.')
+
 
 def find_same_hash():
     global samehash_files
@@ -48,13 +50,14 @@ def find_same_hash():
             for filename in samesize_file_list:
                 file_hash = calculate_hash(filename)
                 if file_hash in samesizehash_files:
-                     samesizehash_files[file_hash].append(filename)
+                    samesizehash_files[file_hash].append(filename)
                 else:
                     samesizehash_files[file_hash] = [filename]
-            for hash in samesizehash_files.keys():
-                if len(samesizehash_files[hash]) > 1:
-                    samehash_files[hash] = samesizehash_files[hash]
+            for myhash in samesizehash_files.keys():
+                if len(samesizehash_files[myhash]) > 1:
+                    samehash_files[myhash] = samesizehash_files[myhash]
     print('Done.')
+
 
 def calculate_hash(file, blocksize=65536):
     if os.path.isfile(file):
@@ -66,6 +69,7 @@ def calculate_hash(file, blocksize=65536):
                 buf = actual_file.read(blocksize)
             return hasher.hexdigest()
 
+
 def print_duplicates():
     if samehash_files != {}:
         print('Duplicate files found')
@@ -75,20 +79,23 @@ def print_duplicates():
                 try:
                     print(filename)
                 except UnicodeEncodeError:
-                    print('There is a problem with filename(s) in folder \'{}\'. Please check and fix.'.format(os.path.dirname(filename)))
+                    print('There is a problem with filename(s) in folder \'{}\'. Please check and fix.'.format(
+                        os.path.dirname(filename)))
     else:
         print('No duplicate files found.')
+
 
 def main():
     parser = argparse.ArgumentParser(description='Find duplicate files')
     parser.add_argument(
         'folders', metavar='dir', type=str, nargs='+',
         help='A directory to parse for duplicates',
-        )
+    )
     args = parser.parse_args()
- 
+
     find_duplicates(args.folders)
     print_duplicates()
+
 
 if __name__ == '__main__':
     main()

@@ -3,4 +3,5 @@
 - Add byte by byte comparison on the md5 same files - No need as we compare md5 between the same size files only, thus reduce the probability of the md5 collision more
 - Add file exception handling (srwxrwxrwx 1 root root 0 Apr 17 18:11 /tmp/.X11-unix/X0=) (OSError: [Errno 6] No such device or address: '/tmp/.X11-unix/X0') - Fixed with 'with open... as... and checking whether it is a regular file'
 - Fix error line 73, in print_duplicates print(filename) - UnicodeEncodeError: 'utf-8' codec can't encode character '\udcf3' in position 103: surrogates not allowed - Fixed by adding try-except around print and print the directory of the bad file
-- 
+- Fix with open(file, 'rb') as actual_file: PermissionError: [Errno 13] Permission denied: '/boot/System.map-3.13.0-52-generic'
+

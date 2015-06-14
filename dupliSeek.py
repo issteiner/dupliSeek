@@ -3,7 +3,7 @@
 # Originally taken from:
 
 # https://github.com/IanLee1521/utilities/blob/master/utilities/find_duplicates.py
-# Original Auther: Ian Lee
+# Original Author: Ian Lee
 
 # Changes are
 # - globalized hash directories to avoid directory joining
@@ -14,18 +14,21 @@ import os
 import hashlib
 
 
+samesize_files = {}
+samehash_files = {}
+
 def find_duplicates(folders):
     for actual_folder in folders:
         if os.path.exists(actual_folder):
             find_same_size(actual_folder)
         else:
             print('\'{}\' is not a valid path. Please verify'.format(actual_folder))
+
     find_same_hash()
 
 
 def find_same_size(folder):
     global samesize_files
-    samesize_files = {}
     print('Gathering files with same size... ', end="")
     for dirname, subdirs, filelist in os.walk(folder):
         for filename in filelist:
@@ -42,7 +45,6 @@ def find_same_size(folder):
 
 def find_same_hash():
     global samehash_files
-    samehash_files = {}
     print('Comparing same size files with md5... ', end="")
     for samesize_file_list in samesize_files.values():
         if len(samesize_file_list) > 1:

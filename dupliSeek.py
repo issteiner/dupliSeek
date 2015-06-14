@@ -16,6 +16,8 @@ import hashlib
 
 samesize_files = {}
 samehash_files = {}
+final_file_store = []
+
 
 def find_duplicates(folders):
     for actual_folder in folders:
@@ -29,7 +31,7 @@ def find_duplicates(folders):
 
 def find_same_size(folder):
     global samesize_files
-    print('Gathering files with same size... ', end="")
+    print('Gathering files with same size in folder \'{}\'... '.format(folder), end="")
     for dirname, subdirs, filelist in os.walk(folder):
         for filename in filelist:
             fullpath_filename = os.path.join(dirname, filename)
@@ -73,9 +75,9 @@ def calculate_hash(file, blocksize=65536):
 
 
 def print_duplicates():
-    if samehash_files != {}:
-        print('Duplicate files found')
-        for samehash_file_list in samehash_files.values():
+    if final_file_store != []:
+        print('The following duplicate files found')
+        for samehash_file_list in final_file_store:
             print('--------------------------------------------------------------')
             for filename in samehash_file_list:
                 try:
@@ -85,6 +87,13 @@ def print_duplicates():
                         os.path.dirname(filename)))
     else:
         print('No duplicate files found.')
+
+def sort_duplicates():
+    global final_file_store
+    if samehash_files != {}:
+        for files in samehash_files.values():
+            final_file_store.append(files)
+        final_file_store.sort()
 
 
 def main():
@@ -96,6 +105,7 @@ def main():
     args = parser.parse_args()
 
     find_duplicates(args.folders)
+    sort_duplicates()
     print_duplicates()
 
 

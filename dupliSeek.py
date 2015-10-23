@@ -36,14 +36,15 @@ def find_same_size(folder):
     for dirname, subdirs, filelist in os.walk(folder):
         for filename in filelist:
             fullpath_filename = os.path.join(dirname, filename)
-            file_size = os.path.getsize(fullpath_filename)
+            absolutepath_filename = os.path.abspath(fullpath_filename)
+            file_size = os.path.getsize(absolutepath_filename)
             if file_size in size_file_store:
-                if fullpath_filename not in size_file_store[file_size]:  # Avoid file duplication when reference dir is part of dirs
+                if absolutepath_filename not in size_file_store[file_size]:  # Avoid false file duplication display in case of very same files (ie. when reference dir is part of dirs)
                     if not refdirfind:
-                        size_file_store[file_size].append(fullpath_filename)
+                        size_file_store[file_size].append(absolutepath_filename)
             else:
                 if not refdirfind:
-                    size_file_store[file_size] = [fullpath_filename]
+                    size_file_store[file_size] = [absolutepath_filename]
     
     if 0 in size_file_store.keys():
          del (size_file_store[0])

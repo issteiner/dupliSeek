@@ -1,0 +1,53 @@
+
+
+nroffilesindirs
+{nroffiles1:[dir1, dir2, ...], nroffiles2:[dir2, dir4, ...]}
+
+
+sumsizeindirs
+{sumsize1:[dir1, dir2, ...], sumsize2:[dir2, dir4, ...]}
+
+
+summd5indirs
+{summd51:[dir1, dir2, ...], summd52:[dir2, dir4, ...]}
+
+-d parameter
+
+1. go through the directories and make the sum size of all the subdirectories. Put them into a dictionary.
+2. Go through the previous dictionary and test the same size dictionaries against md5 (sum md5)
+
+--------------------------------
+
+-r parameter <reference directory>
+Search for duplicates of files in this directory against the other directories
+
+1. Iterating over the reference directory create
+
+filesize_store
+{size1:[file1, file2, ... , '|'],
+size2:[file3, file4, ... , '|'], ...}
+
+Every filelist must end with '|'
+
+2. Iterating over the other directories only APPEND file if size equals.
+
+3. Delete entry with size 0 key
+
+4. Iterate over filesize_store
+and
+with each filesize value
+iterate over the filenames until '|' and put hash and filenames in
+
+filehash_store
+{hash1:[file1, file2, ... , '|'],
+hash2:[file3, file4, ... , '|'], ...}
+
+Every filelist must end with '|'
+
+5.
+Go on iterating on filenames started from '|' and only APPEND the file to filehash_store if hash equals.
+
+6.
+Iterate over samehash_files values, print files until '|', print a separator and print files then from this point.
+Print another separator.
+

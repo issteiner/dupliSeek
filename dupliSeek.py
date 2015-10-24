@@ -15,64 +15,65 @@ import hashlib
 import sys
 
 REFFILE_END_MARKER = '|'
-size_file_store = {}
-hash_file_store = {}
-sorted_file_store = []
+filesize_store = {}
+filehash_store = {}
+filestore4sort = []
 refdirfind = False
 
 
-def find_duplicate_files(folders):
+def find_samesize_in_folders(folders):
     for actual_folder in folders:
-        find_same_size(actual_folder)
-
-    find_same_hash()
+        find_samesize_in_a_folder(actual_folder)
 
 
-def find_same_size(folder):
-    global size_file_store
+def find_samesize_in_a_folder(folder):
 
-    print('Gathering files with same size in folder \'{}\'... '.format(folder), end="")
+    global filesize_store
+
+    print('Gathering files with same size in folder \'{}\'... '.format(folder), end="", flush=True)
 
     for dirname, subdirs, filelist in os.walk(folder):
         for filename in filelist:
             fullpath_filename = os.path.join(dirname, filename)
             absolutepath_filename = os.path.abspath(fullpath_filename)
             file_size = os.path.getsize(absolutepath_filename)
-            if file_size in size_file_store:
-                if absolutepath_filename not in size_file_store[file_size]:  # Avoid false file duplication display in case of very same files (ie. when reference dir is part of dirs)
-                    if not refdirfind:
-                        size_file_store[file_size].append(absolutepath_filename)
+            if file_size in filesize_store:
+                if absolutepath_filename not in filesize_store[file_size]:  # Avoid false file duplication display in case of very same files (ie. when reference dir is part of dirs)
+                     filesize_store[file_size].append(absolutepath_filename)
             else:
                 if not refdirfind:
-                    size_file_store[file_size] = [absolutepath_filename]
+                    filesize_store[file_size] = [absolutepath_filename]
     
-    if 0 in size_file_store.keys():
-         del (size_file_store[0])
+    if 0 in filesize_store.keys():
+         del (filesize_store[0])
     print('Done.')
 
 
-def put_reffile_end_marker():
-    global size_file_store
-    for filelist in size_file_store.values():
+def put_reffile_end_marker(file_store):
+    for filelist in file_store.values():
         filelist.append(REFFILE_END_MARKER)
 
 
-def find_same_hash():
-    global hash_file_store
-    print('Comparing same size files with md5... ', end="")
-    for samesize_file_list in size_file_store.values():
-        if len(samesize_file_list) > 1 and not refdirfind or len(samesize_file_list) > 2 and refdirfind:
-            temp_hash_file_store = {}
+def find_samehash():
+    global filehash_store
+    reffiles = True
+    print('Comparing same size files with md5... ', end="", flush=True)
+    for samesize_file_list in filesize_store.values():
+        if len(samesize_file_list) > 2 and refdirfind or len(samesize_file_list) > 1:
+            temp_hashfile_store = {}
             for filename in samesize_file_list:
                 if filename != REFFILE_END_MARKER:
                     file_hash = calculate_hash(filename)
-                    if file_hash in temp_hash_file_store:
-                        temp_hash_file_store[file_hash].append(filename)
+                    if file_hash in temp_hashfile_store:
+                        temp_hashfile_store[file_hash].append(filename)
                     else:
-                        temp_hash_file_store[file_hash] = [filename]
-            for myhash in temp_hash_file_store.keys():
-                if len(temp_hash_file_store[myhash]) > 1:
-                    hash_file_store[myhash] = temp_hash_file_store[myhash]
+                        if reffiles:
+                            temp_hashfile_store[file_hash] = [filename]
+                else:
+                    reffiles = False
+            for myhash in temp_hashfile_store.keys():
+                if len(temp_hashfile_store[myhash]) > 1:
+                    filehash_store[myhash] = temp_hashfile_store[myhash]
     print('Done.')
 
 
@@ -86,35 +87,24 @@ def calculate_hash(file, blocksize=65536):
                 buf = actual_file.read(blocksize)
             return hasher.hexdigest()
 
-
-def find_duplicates_in_refdir(refdir, dir):
-    global refdirfind
-    find_same_size(refdir)
-    put_reffile_end_marker()
-#     print(size_file_store)
-    find_duplicate_files(dir)
-#     for item in size_file_store:
-#         print(item, size_file_store[item])
-#     sys.exit(0)
-    refdirfind = True
-
+   
 def find_duplicated_directories(dir):
     # TODO
     pass
 
 
 def sort_duplicates():
-    global sorted_file_store
-    if hash_file_store != {}:
-        for files in hash_file_store.values():
-            sorted_file_store.append(files)
-        sorted_file_store.sort()
+    global filestore4sort
+    if filehash_store != {}:
+        for files in filehash_store.values():
+            filestore4sort.append(files)
+        filestore4sort.sort()
 
 
 def print_duplicates():
-    if sorted_file_store != []:
+    if filestore4sort != []:
         print('The following duplicate files were found')
-        for samehash_file_list in sorted_file_store:
+        for samehash_file_list in filestore4sort:
             print('-' * 40)
             for filename in samehash_file_list:
                 try:
@@ -134,7 +124,9 @@ def check_if_dirs_exist(dirlist):
 
 
 def main():
+    
     global refdirfind
+    
     parser = argparse.ArgumentParser(description='Find duplicate files or duplicate directories')
 
     parser.add_argument('-r', '--refdir', metavar='rdir', type=str, nargs=1, required=False,
@@ -147,21 +139,27 @@ def main():
     except Exception as e:
         print(e)
         parser.print_help()
-#     print(args)
 
     check_if_dirs_exist(args.dir)
 
     if args.refdir:
         print('Starting reference directory based duplicate find...')
         check_if_dirs_exist(args.refdir)
-        find_duplicates_in_refdir(args.refdir[0], args.dir)
+        find_samesize_in_a_folder(args.refdir[0])
+        put_reffile_end_marker(filesize_store)
+        refdirfind = True
+        find_samesize_in_folders(args.dir)
     elif args.dirdups:
         print('Starting duplicate directory find...')
         find_duplicated_directories(args.dir)
     else:
         print('Starting normal directory based duplicate find...')
-        find_duplicate_files(args.dir)
+        find_samesize_in_folders(args.dir)
 
+    find_samehash()
+    put_reffile_end_marker(filehash_store)
+    print(filesize_store)
+    print(filehash_store)
     sort_duplicates()
     print_duplicates()
 

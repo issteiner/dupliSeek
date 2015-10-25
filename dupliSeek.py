@@ -49,31 +49,33 @@ def find_samesize_in_a_folder(folder):
     print('Done.')
 
 
-def put_reffile_end_marker(file_store):
-    for filelist in file_store.values():
+def put_reffile_end_marker(store):
+    for filelist in store.values():
         filelist.append(REFFILE_END_MARKER)
 
 
 def find_samehash():
     global filehash_store
-    reffiles = True
     print('Comparing same size files with md5... ', end="", flush=True)
     for samesize_file_list in filesize_store.values():
-        if len(samesize_file_list) > 2 and refdirfind or len(samesize_file_list) > 1:
-            temp_hashfile_store = {}
+        if len(samesize_file_list) > 2 and refdirfind or len(samesize_file_list) > 1 and not refdirfind:
+            filehash_temp_store = {}
+            reffiles = True
             for filename in samesize_file_list:
                 if filename != REFFILE_END_MARKER:
                     file_hash = calculate_hash(filename)
-                    if file_hash in temp_hashfile_store:
-                        temp_hashfile_store[file_hash].append(filename)
+                    if file_hash in filehash_temp_store:
+                        filehash_temp_store[file_hash].append(filename)
                     else:
                         if reffiles:
-                            temp_hashfile_store[file_hash] = [filename]
+                            filehash_temp_store[file_hash] = [filename]
                 else:
                     reffiles = False
-            for myhash in temp_hashfile_store.keys():
-                if len(temp_hashfile_store[myhash]) > 1:
-                    filehash_store[myhash] = temp_hashfile_store[myhash]
+                    put_reffile_end_marker(filehash_temp_store)
+                    
+            for actual_hash in filehash_temp_store.keys():
+                if len(filehash_temp_store[actual_hash]) > 2 and refdirfind or len(filehash_temp_store[actual_hash]) > 1 and not refdirfind:
+                    filehash_store[actual_hash] = filehash_temp_store[actual_hash]
     print('Done.')
 
 
@@ -157,9 +159,6 @@ def main():
         find_samesize_in_folders(args.dir)
 
     find_samehash()
-    put_reffile_end_marker(filehash_store)
-    print(filesize_store)
-    print(filehash_store)
     sort_duplicates()
     print_duplicates()
 

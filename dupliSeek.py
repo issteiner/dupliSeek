@@ -18,7 +18,7 @@ REFFILE_END_MARKER = '|'
 filesize_store = {}
 filehash_store = {}
 filestore4sort = []
-refdirfind = False
+refdirfind_is_over = False
 
 
 def find_samesize_in_folders(folders):
@@ -41,7 +41,7 @@ def find_samesize_in_a_folder(folder):
                 if absolutepath_filename not in filesize_store[file_size]:  # Avoid false file duplication display in case of very same files (ie. when reference dir is part of dirs)
                      filesize_store[file_size].append(absolutepath_filename)
             else:
-                if not refdirfind:
+                if not refdirfind_is_over:
                     filesize_store[file_size] = [absolutepath_filename]
     
     if 0 in filesize_store.keys():
@@ -58,7 +58,7 @@ def find_samehash():
     global filehash_store
     print('Comparing same size files with md5... ', end="", flush=True)
     for samesize_file_list in filesize_store.values():
-        if len(samesize_file_list) > 2 and refdirfind or len(samesize_file_list) > 1 and not refdirfind:
+        if len(samesize_file_list) > 2 or len(samesize_file_list) > 1 and not refdirfind_is_over:
             filehash_temp_store = {}
             reffiles = True
             for filename in samesize_file_list:
@@ -74,7 +74,7 @@ def find_samehash():
                     put_reffile_end_marker(filehash_temp_store)
                     
             for actual_hash in filehash_temp_store.keys():
-                if len(filehash_temp_store[actual_hash]) > 2 and refdirfind or len(filehash_temp_store[actual_hash]) > 1 and not refdirfind:
+                if len(filehash_temp_store[actual_hash]) > 2 or len(filehash_temp_store[actual_hash]) > 1 and not refdirfind_is_over:
                     filehash_store[actual_hash] = filehash_temp_store[actual_hash]
     print('Done.')
 
@@ -127,7 +127,8 @@ def check_if_dirs_exist(dirlist):
 
 def main():
     
-    global refdirfind
+    global refdirfind_is_over
+    refdirfind_is_over = False
     
     parser = argparse.ArgumentParser(description='Find duplicate files or duplicate directories')
 
@@ -149,7 +150,7 @@ def main():
         check_if_dirs_exist(args.refdir)
         find_samesize_in_a_folder(args.refdir[0])
         put_reffile_end_marker(filesize_store)
-        refdirfind = True
+        refdirfind_is_over = True
         find_samesize_in_folders(args.dir)
     elif args.dirdups:
         print('Starting duplicate directory find...')

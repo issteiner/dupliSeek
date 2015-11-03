@@ -152,7 +152,7 @@ def main():
         put_reffile_end_marker(filesize_store)
         refdirfind_is_over = True
         find_samesize_in_folders(args.dir)
-    elif args.dirdups:
+    elif args.dirseek:
         print('Starting duplicate directory find...')
         find_duplicated_directories(args.dir)
     else:

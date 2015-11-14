@@ -1,8 +1,37 @@
 
+Active issues
+-------------
+
 - Add directory print
-- Add byte by byte comparison on the md5 same files - No need as we compare md5 between the same size files only, thus reduce the probability of the md5 collision more
-- Add file exception handling (srwxrwxrwx 1 root root 0 Apr 17 18:11 /tmp/.X11-unix/X0=) (OSError: [Errno 6] No such device or address: '/tmp/.X11-unix/X0') - Fixed with 'with open... as... and checking whether it is a regular file'
-- Fix error line 73, in print_duplicates print(filename) - UnicodeEncodeError: 'utf-8' codec can't encode character '\udcf3' in position 103: surrogates not allowed - Fixed by adding try-except around print and print the directory of the bad file
+
+- Error when broken link is found
+Gathering files with same size in folder '/home/ethsri/Documents/'... Traceback (most recent call last):
+  File "./dupliSeek.py", line 168, in <module>
+    main()
+  File "./dupliSeek.py", line 160, in main
+    find_samesize_in_folders(args.dir)
+  File "./dupliSeek.py", line 26, in find_samesize_in_folders
+    find_samesize_in_a_folder(actual_folder)
+  File "./dupliSeek.py", line 39, in find_samesize_in_a_folder
+    file_size = os.path.getsize(absolutepath_filename)
+  File "/usr/lib/python3.4/genericpath.py", line 50, in getsize
+    return os.stat(filename).st_size
+FileNotFoundError: [Errno 2] No such file or directory: '/home/ethsri/Documents/Private/0_ConsolidatedHdd/6_MuszakiTudomany/Szamitastechnika/Programozas/Python/Book/HarryPercival-TestDrivenDevelopmentWithPython/Link2Index.html'
+
 - Fix with open(file, 'rb') as actual_file: PermissionError: [Errno 13] Permission denied: '/boot/System.map-3.13.0-52-generic'
+
+- 
+
+Fixed issues
+------------
+
+- Add byte by byte comparison on the md5 same files
+    No need as we compare md5 between the same size files only, thus reduce the probability of the md5 collision more
+
+- Add file exception handling (srwxrwxrwx 1 root root 0 Apr 17 18:11 /tmp/.X11-unix/X0=) (OSError: [Errno 6] No such device or address: '/tmp/.X11-unix/X0')
+    Fixed with 'with open... as... and checking whether it is a regular file'
+
+- Fix error line 73, in print_duplicates print(filename) - UnicodeEncodeError: 'utf-8' codec can't encode character '\udcf3' in position 103: surrogates not allowed
+    Fixed by adding try-except around print and print the directory of the bad file
+
 - Sorted file result output - OK
--

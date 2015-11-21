@@ -20,15 +20,16 @@ filehash_store = {}
 filestore4sort = []
 
 refdirfind_is_over = False
-suppress_msgs_n_reffiles = False
+verbose_msgs = False
+suppress_reference_files = False
 
-def print_if_allowed(text):
-    if not suppress_msgs_n_reffiles:
+def print_if_needed(text):
+    if verbose_msgs:
         print(text, end="", flush=True)
 
 
-def printlf_if_allowed(text):
-    if not suppress_msgs_n_reffiles:
+def printlf_if_needed(text):
+    if verbose_msgs:
         print(text)
 
 
@@ -41,7 +42,7 @@ def find_samesize_in_a_folder(folder):
 
     global filesize_store
 
-    print_if_allowed('Gathering files with same size in folder \'{}\'... '.format(folder))
+    print_if_needed('Gathering files with same size in folder \'{}\'... '.format(folder))
 
     for dirname, subdirs, filelist in os.walk(folder):
         for filename in filelist:
@@ -57,7 +58,7 @@ def find_samesize_in_a_folder(folder):
     
     if 0 in filesize_store.keys():
          del (filesize_store[0])
-    printlf_if_allowed('Done.')
+    printlf_if_needed('Done.')
 
 
 def put_reffile_end_marker(store):
@@ -67,7 +68,7 @@ def put_reffile_end_marker(store):
 
 def find_samehash():
     global filehash_store
-    print_if_allowed('Comparing same size files with md5... ')
+    print_if_needed('Comparing same size files with md5... ')
     for samesize_file_list in filesize_store.values():
         if len(samesize_file_list) > 2 or len(samesize_file_list) > 1 and not refdirfind_is_over:
             filehash_temp_store = {}
@@ -87,7 +88,7 @@ def find_samehash():
             for actual_hash in filehash_temp_store.keys():
                 if len(filehash_temp_store[actual_hash]) > 2 or len(filehash_temp_store[actual_hash]) > 1 and not refdirfind_is_over:
                     filehash_store[actual_hash] = filehash_temp_store[actual_hash]
-    printlf_if_allowed('Done.')
+    printlf_if_needed('Done.')
 
 
 def calculate_hash(file, blocksize=65536):
@@ -115,27 +116,34 @@ def sort_duplicates():
 
 def print_duplicates():
     skip_reffile_print = False
+    
     if filestore4sort != []:
-        printlf_if_allowed('The following duplicate files were found')
+        printlf_if_needed('The following duplicate files were found')
 
+        print('-' * 40)
         for samehash_file_list in filestore4sort:
-            if REFFILE_END_MARKER in samehash_file_list and suppress_msgs_n_reffiles:
+            print_was_before = False
+            if REFFILE_END_MARKER in samehash_file_list and suppress_reference_files:
                 skip_reffile_print = True
 
-            print('-' * 40)
             for filename in samehash_file_list:
                 if filename != REFFILE_END_MARKER:
                     if not skip_reffile_print:
+                        print_was_before = True
                         try:
                             print(filename)
                         except UnicodeEncodeError:
                             print('There is a problem with filename(s) in folder \'{}\'. Please check and fix.'.format(
                                 os.path.dirname(filename)))
                 else:
-                    printlf_if_allowed(filename)
+                    if not skip_reffile_print:
+                        print(filename)
                     skip_reffile_print = False
+
+            if print_was_before:
+                print('-' * 40)
     else:
-        print('No duplicate files found.')
+        printlf_if_needed('No duplicate files found.')
 
 
 def check_if_dirs_exist(dirlist):
@@ -147,8 +155,9 @@ def check_if_dirs_exist(dirlist):
 
 def main():
 
-    global suppress_msgs_n_reffiles
+    global verbose_msgs
     global refdirfind_is_over
+    global suppress_reference_files 
     refdirfind_is_over = False
 
     parser = argparse.ArgumentParser(description='Find duplicate files or duplicate directories')
@@ -156,7 +165,8 @@ def main():
     parser.add_argument('-r', '--refdir', metavar='rdir', type=str, nargs=1, required=False,
                         help='Reference directory')
     parser.add_argument('-d', '--dirseek', action='store_true', help='Find duplicate directories')
-    parser.add_argument('-q', '--quiet' , action='store_true', help='Suppress status messages and file reference printout')
+    parser.add_argument('-v', '--verbose' , action='store_true', help='Print status messages')
+    parser.add_argument('-s', '--suppress', action='store_true', help='Suppress file reference printout')
     parser.add_argument('dir', type=str, nargs='+', help='A directory to find for duplicates in')
 
     try:
@@ -167,21 +177,25 @@ def main():
 
     check_if_dirs_exist(args.dir)
 
-    if args.quiet:
-        suppress_msgs_n_reffiles = True
+    if args.verbose:
+        verbose_msgs = True
+    
 
     if args.refdir:
-        printlf_if_allowed('Starting reference directory based duplicate find...')
+        if args.suppress:
+            suppress_reference_files = True
+
+        printlf_if_needed('Starting reference directory based duplicate find...')
         check_if_dirs_exist(args.refdir)
         find_samesize_in_a_folder(args.refdir[0])
         put_reffile_end_marker(filesize_store)
         refdirfind_is_over = True
         find_samesize_in_folders(args.dir)
     elif args.dirseek:
-        printlf_if_allowed('Starting duplicate directory find...')
+        printlf_if_needed('Starting duplicate directory find...')
         find_duplicated_directories(args.dir)
     else:
-        printlf_if_allowed('Starting normal directory based duplicate find...')
+        printlf_if_needed('Starting normal directory based duplicate find...')
         find_samesize_in_folders(args.dir)
 
     find_samehash()

@@ -20,7 +20,9 @@ FileNotFoundError: [Errno 2] No such file or directory: '/home/ethsri/Documents/
 
 - Fix with open(file, 'rb') as actual_file: PermissionError: [Errno 13] Permission denied: '/boot/System.map-3.13.0-52-generic'
 
-- 
+- Introduce parameter for limiting file extension to be dealt: -e/--ext
+
+- Introduce parameter for limiting file size to be dealt: -z/--size
 
 Fixed issues
 ------------
@@ -35,3 +37,7 @@ Fixed issues
     Fixed by adding try-except around print and print the directory of the bad file
 
 - Sorted file result output - OK
+
+- Change -q to -v/--verbose to show the messages
+
+- Introduce parameter to suppress printing the reference files themselves (and their duplicates in reference directory): -s/--suppress

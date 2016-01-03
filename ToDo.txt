@@ -1,3 +1,18 @@
+Already implemented arguments/parameters/switches
+
+-h, --help              show this help message and exit
+-r rdir, --refdir rdir  Reference directory
+-d, --dirseek           Find duplicate directories
+-v, --verbose           Print status messages
+-s, --suppress          Suppress file reference printout
+-o, --refonly           Prints reference duplicates only	-	prints only reference files (which has duplicate on the other directories)
+
+
+To be implemented arguments/parameters/switches
+
+-z, --size              Minimum size filter
+-e, --ext               Exclude extension filter
+-o, --refonly           Print only the duplicated reference files
 
 Active issues
 -------------

@@ -22,6 +22,7 @@ filestore4sort = []
 refdirfind_is_over = False
 verbose_msgs = False
 suppress_reference_files = False
+reference_duplicates_only = False
 
 def print_if_needed(text):
     if verbose_msgs:
@@ -116,6 +117,7 @@ def sort_duplicates():
 
 def print_duplicates():
     skip_reffile_print = False
+    skip_otherfile_print = False
     
     if filestore4sort != []:
         printlf_if_needed('The following duplicate files were found')
@@ -123,22 +125,29 @@ def print_duplicates():
         print('-' * 40)
         for samehash_file_list in filestore4sort:
             print_was_before = False
-            if REFFILE_END_MARKER in samehash_file_list and suppress_reference_files:
-                skip_reffile_print = True
-
+            if REFFILE_END_MARKER in samehash_file_list:
+                if suppress_reference_files:
+                    skip_reffile_print = True
+                elif reference_duplicates_only:
+                    if samehash_file_list.index(REFFILE_END_MARKER) == len(samehash_file_list) - 1:
+                        continue
+                    skip_otherfile_print = True
+            
+            over_reffile_end_marker = False
             for filename in samehash_file_list:
                 if filename != REFFILE_END_MARKER:
-                    if not skip_reffile_print:
-                        print_was_before = True
+                    if (not over_reffile_end_marker and not skip_reffile_print) or (over_reffile_end_marker and not skip_otherfile_print):
                         try:
                             print(filename)
                         except UnicodeEncodeError:
                             print('There is a problem with filename(s) in folder \'{}\'. Please check and fix.'.format(
                                 os.path.dirname(filename)))
+                        print_was_before = True
                 else:
-                    if not skip_reffile_print:
-                        print(filename)
-                    skip_reffile_print = False
+                    if not (skip_reffile_print or skip_otherfile_print):
+                        print(REFFILE_END_MARKER)
+                    over_reffile_end_marker = True
+
 
             if print_was_before:
                 print('-' * 40)
@@ -158,6 +167,7 @@ def main():
     global verbose_msgs
     global refdirfind_is_over
     global suppress_reference_files 
+    global reference_duplicates_only
     refdirfind_is_over = False
 
     parser = argparse.ArgumentParser(description='Find duplicate files or duplicate directories')
@@ -166,8 +176,9 @@ def main():
                         help='Reference directory')
     parser.add_argument('-d', '--dirseek', action='store_true', help='Find duplicate directories')
     parser.add_argument('-v', '--verbose' , action='store_true', help='Print status messages')
-    parser.add_argument('-s', '--suppress', action='store_true', help='Suppress file reference printout')
-    parser.add_argument('dir', type=str, nargs='+', help='A directory to find for duplicates in')
+    parser.add_argument('-s', '--suppress', action='store_true', help='Suppress reference duplicates')
+    parser.add_argument('-o', '--refonly', action='store_true', help='Prints reference duplicates only')  # Only if they have duplicates in the other directories
+    parser.add_argument('dir', type=str, nargs='+', help='A directory to find for duplicates in (Not implemented yet)')
 
     try:
         args = parser.parse_args()
@@ -182,8 +193,15 @@ def main():
     
 
     if args.refdir:
+        if args.suppress and args.refonly:
+            print('Parameters -s (--suppress) and -o (--refonly) must not be used at the same time!')
+            parser.print_help()
+            sys.exit(1)
+
         if args.suppress:
             suppress_reference_files = True
+        elif args.refonly:
+            reference_duplicates_only = True
 
         printlf_if_needed('Starting reference directory based duplicate find...')
         check_if_dirs_exist(args.refdir)

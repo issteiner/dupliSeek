@@ -6,13 +6,10 @@ Already implemented arguments/parameters/switches
 -v, --verbose           Print status messages
 -s, --suppress          Suppress file reference printout
 -o, --refonly           Prints reference duplicates only	-	prints only reference files (which has duplicate on the other directories)
+-m, --minsize			Min size of files to deal
 
 
 To be implemented arguments/parameters/switches
-
--z, --size              Minimum size filter
--e, --ext               Exclude extension filter
--o, --refonly           Print only the duplicated reference files
 
 Active issues
 -------------
@@ -35,9 +32,10 @@ FileNotFoundError: [Errno 2] No such file or directory: '/home/ethsri/Documents/
 
 - Fix with open(file, 'rb') as actual_file: PermissionError: [Errno 13] Permission denied: '/boot/System.map-3.13.0-52-generic'
 
-- Introduce parameter for limiting file extension to be dealt: -e/--ext
+- Fix file not found issue in case of broken link.
 
-- Introduce parameter for limiting file size to be dealt: -z/--size
+- Introduce parameter for limiting file extension to be dealt: -e/--ext (Should be deeply thought about before implementation) - maybe not needed
+
 
 Fixed issues
 ------------
@@ -56,3 +54,6 @@ Fixed issues
 - Change -q to -v/--verbose to show the messages
 
 - Introduce parameter to suppress printing the reference files themselves (and their duplicates in reference directory): -s/--suppress
+
+- Introduce parameter for minimal file size to be dealt: -m/--size
+

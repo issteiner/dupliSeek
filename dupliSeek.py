@@ -57,13 +57,13 @@ def find_samesize_in_a_folder(folder):
             file_size = os.path.getsize(absolutepath_filename)
             if file_size in filesize_store:
                 if absolutepath_filename not in filesize_store[file_size]:  # Avoid false file duplication display in case of very same files (ie. when reference dir is part of dirs)
-                     filesize_store[file_size].append(absolutepath_filename)
+                    filesize_store[file_size].append(absolutepath_filename)
             else:
                 if not refdirfind_is_over and file_size > filesize_min:
                     filesize_store[file_size] = [absolutepath_filename]
     
     if 0 in filesize_store.keys():
-         del (filesize_store[0])
+        del (filesize_store[0])
     printlf_if_needed('Done.')
 
 
@@ -184,7 +184,7 @@ def main():
     parser.add_argument('-v', '--verbose' , action='store_true', help='Print status messages')
     parser.add_argument('-s', '--nonrefonly', action='store_true', help='Prints non-reference duplicates only')
     parser.add_argument('-o', '--refonly', action='store_true', help='Prints reference duplicates only')  # Only if they have duplicates in the other directories
-    parser.add_argument('-m', '--minsize', metavar='size', type=str, nargs=1, help='Min size of files to deal')
+    parser.add_argument('-m', '--minsize', metavar='size', type=str, nargs=1, help='Min size of files to deal in bytes. k, M, G suffixes can be used.')
     parser.add_argument('dir', type=str, nargs='+', help='A directory to find for duplicates in')
 
     try:

@@ -7,7 +7,7 @@ Already implemented arguments/parameters/switches
 -s, --suppress          Suppress file reference printout
 -o, --refonly           Prints reference duplicates only	-	prints only reference files (which has duplicate on the other directories)
 -m, --minsize			Min size of files to deal
-
+-p, --purge 			Purge duplicate files from non reference directory
 
 To be implemented arguments/parameters/switches
 

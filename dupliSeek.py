@@ -24,8 +24,9 @@ filestore4sort = []
 
 refdirfind_is_over = False
 verbose_msgs = False
-suppress_reference_files = False
-suppress_nonreference_files = False
+suppress_reference_files_is_needed = False
+suppress_nonreference_files_is_needed = False
+purge_nonrefdir_files_is_needed = False
 
 filesize_min = 0
 
@@ -108,7 +109,7 @@ def calculate_hash(file, blocksize=65536):
             return hasher.hexdigest()
 
    
-def find_duplicated_directories(dir):
+def find_duplicated_directories(directory):
     print('Not implemented yet.')
 
 
@@ -125,15 +126,15 @@ def print_duplicates():
     skip_otherfile_print = False
     
     if filestore4sort != []:
-        printlf_if_needed('The following duplicate files were found')
+        printlf_if_needed('The following duplicate files were found.')
 
         print('-' * 40)
         for samehash_file_list in filestore4sort:
             print_was_before = False
             if REFFILE_END_MARKER in samehash_file_list:
-                if suppress_reference_files:
+                if suppress_reference_files_is_needed:
                     skip_reffile_print = True
-                elif suppress_nonreference_files:
+                elif suppress_nonreference_files_is_needed:
                     if samehash_file_list.index(REFFILE_END_MARKER) == len(samehash_file_list) - 1:
                         continue
                     skip_otherfile_print = True
@@ -167,14 +168,32 @@ def check_if_dirs_exist(dirlist):
             sys.exit(1)
 
 
+def purge_nonrefdir_files():
+    if filehash_store != []:
+        printlf_if_needed('The following duplicate files were purged.')
+        print('-' * 40)
+        for samehash_file_list in filehash_store.values():
+            over_reffile_end_marker = False
+            for filename in samehash_file_list:
+                if filename != REFFILE_END_MARKER:
+                    if over_reffile_end_marker:
+                        os.remove(filename)
+                    else:
+                        continue
+                else:
+                    over_reffile_end_marker = True
+    else:
+        printlf_if_needed('No duplicate files found so no purge at all.')
+
 def main():
 
     global verbose_msgs
     global refdirfind_is_over
-    global suppress_reference_files 
-    global suppress_nonreference_files
+    global suppress_reference_files_is_needed 
+    global suppress_nonreference_files_is_needed
     global filesize_min
     refdirfind_is_over = False
+    purge_nonrefdir_files_is_needed = False
 
     parser = argparse.ArgumentParser(description='Find duplicate files or duplicate directories')
 
@@ -185,6 +204,7 @@ def main():
     parser.add_argument('-s', '--nonrefonly', action='store_true', help='Prints non-reference duplicates only')
     parser.add_argument('-o', '--refonly', action='store_true', help='Prints reference duplicates only')  # Only if they have duplicates in the other directories
     parser.add_argument('-m', '--minsize', metavar='size', type=str, nargs=1, help='Min size of files to deal in bytes. k, M, G suffixes can be used.')
+    parser.add_argument('-p', '--purge', action='store_true', help='Purge duplicate files in non reference directories.')
     parser.add_argument('dir', type=str, nargs='+', help='A directory to find for duplicates in')
 
     try:
@@ -211,13 +231,15 @@ def main():
             sys.exit(1)
 
     if args.refdir:
+        if args.purge:
+            purge_nonrefdir_files_is_needed = True            
         if args.nonrefonly and args.refonly:
-            print('Parameters -s (--nonrefonly) and -o (--refonly) must not be used at the same time!')
+            print('Parameters -s/--nonrefonly and -o/--refonly must not be used at the same time!')
             sys.exit(1)
         if args.nonrefonly:
-            suppress_reference_files = True
+            suppress_reference_files_is_needed = True
         elif args.refonly:
-            suppress_nonreference_files = True
+            suppress_nonreference_files_is_needed = True
 
         printlf_if_needed('Starting reference directory based duplicate find...')
         check_if_dirs_exist(args.refdir)
@@ -225,8 +247,14 @@ def main():
         put_reffile_end_marker(filesize_store)
         refdirfind_is_over = True
         find_samesize_in_folders(args.dir)
-    elif args.nonrefonly or args.refonly:
-        print('Parameters -s (--nonrefonly) or -o (--refonly) can only be used during reference based find!')
+    elif args.nonrefonly:
+        print('Parameter -s/--nonrefonly can only be used during reference based find!')
+        sys.exit(1)
+    elif args.refonly:
+        print('Parameter -o/--refonly can only be used during reference based find!')
+        sys.exit(1)
+    elif args.purge:
+        print('Parameter -p/--purge can only be used during reference based find!')
         sys.exit(1)
     elif args.dirseek:
         printlf_if_needed('Starting duplicate directory find...')
@@ -236,8 +264,12 @@ def main():
         find_samesize_in_folders(args.dir)
 
     find_samehash()
-    sort_duplicates()
-    print_duplicates()
+    
+    if purge_nonrefdir_files_is_needed:
+        purge_nonrefdir_files()
+    else:
+        sort_duplicates()
+        print_duplicates()
 
 
 if __name__ == '__main__':

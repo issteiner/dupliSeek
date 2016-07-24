@@ -177,6 +177,7 @@ def purge_nonrefdir_files():
             for filename in samehash_file_list:
                 if filename != REFFILE_END_MARKER:
                     if over_reffile_end_marker:
+                        printlf_if_needed(filename)
                         os.remove(filename)
                     else:
                         continue
@@ -204,7 +205,7 @@ def main():
     parser.add_argument('-s', '--nonrefonly', action='store_true', help='Prints non-reference duplicates only')
     parser.add_argument('-o', '--refonly', action='store_true', help='Prints reference duplicates only')  # Only if they have duplicates in the other directories
     parser.add_argument('-m', '--minsize', metavar='size', type=str, nargs=1, help='Min size of files to deal in bytes. k, M, G suffixes can be used.')
-    parser.add_argument('-p', '--purge', action='store_true', help='Purge duplicate files in non reference directories.')
+    parser.add_argument('-p', '--purge', action='store_true', help='Purge duplicate files in non reference directories')
     parser.add_argument('dir', type=str, nargs='+', help='A directory to find for duplicates in')
 
     try:
